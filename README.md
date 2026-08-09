@@ -1,7 +1,7 @@
 # fake-komga
 
 [![Go](https://img.shields.io/badge/Go-1.23%2B-blue)](https://go.dev)
-[![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/tanlidoushen/fake-komga)
+[![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/tanlidoushen/fake-komga/blob/main/LICENSE)
 
 ---
 
