@@ -7,8 +7,7 @@
 ```
 fake-komga/
 ├── fake-komga-115/         # 115 网盘后端（forked from xJogger/fake-komga-115）
-│                            # 新增：bangumi_series_meta 元数据注入、booksMetadata 字段补全
-│                            # 原项目：https://github.com/xJogger/fake-komga-115
+│                            # 增加一些字段的推送
 ├── fake-komga-local/       # 本地文件系统后端（基于 fake-komga 框架）
 │                            # 支持本地目录扫描、阅读进度同步、元数据注入
 ├── bangumi-metadata/       # Bangumi 元数据刮削器
@@ -19,24 +18,8 @@ fake-komga/
     └── .env.example
 ```
 
-## 架构
-
-```
-┌───────────────┐     ┌───────────────────┐     ┌──────────────┐
-│  Mihon /      │────▶│  fake-komga-115   │────▶│  115 网盘    │
-│  Komikku /    │     │  (端口 25602)      │     │  Open API    │
-│  Tachiyomi    │     ├───────────────────┤     └──────────────┘
-│               │────▶│  fake-komga-local │────▶│  本地漫画目录 │
-│  (Komga 扩展)  │     │  (端口 25604)      │     └──────────────┘
-└───────────────┘     └────────┬──────────┘
-                               │ 共享数据库
-                         ┌────▼──────────┐
-                         │ bangumi-      │
-                         │ metadata      │
-                         │ (端口 25601)   │
-                         │ 元数据刮削器   │
-                         └───────────────┘
-```
+> ⚠️ 上述架构图是测试阶段使用的方案，实际部署不应同时运行多个后端。  
+> 根据需要选择一种后端（local 或 115）即可，bangumi-metadata 可独立部署对接任一后端。
 
 ## 背景
 
@@ -51,7 +34,6 @@ Komga 官方版（Java）资源占用较高，在低配设备（如 NAS、开发
 - 阅读进度同步（GET/PATCH/DELETE read-progress）
 - 元数据注入（从 bangumi_series_meta 表读取标题/简介/标签/评分/作者/出版社）
 - 搜索（COLLATE NOCASE + 特殊字符转义）
-- 全文搜索（文件名/系列名）
 - 支持分页、排序、库过滤、阅读状态过滤
 
 ### fake-komga-local
@@ -143,31 +125,6 @@ docker compose -f docker-compose.yml -f docker-compose.115.yml up -d
 - ❌ **不适用于公网部署**
 - ❌ 仅建议在内网可信环境使用
 - ❌ 数据无加密传输
-
-## 与原版区别
-
-### fake-komga-115 (forked from [xJogger/fake-komga-115](https://github.com/xJogger/fake-komga-115))
-
-- 新增 `bangumi_series_meta` 表读取 → 元数据注入（标题/简介/标签/评分）
-- 新增 `booksMetadata.authors` 字段 → Komikku 作者显示支持
-- 新增 `booksMetadata.summary/summaryNumber/created/lastModified` 字段
-- 新增 `SeriesMetadataDto.totalBookCount` 字段
-- 阅读进度同步
-
-### fake-komga-local
-
-- 基于 fake-komga 框架，从零写的本地文件系统后端
-- 支持多目录扫描
-- 缩略图懒生成（从漫画第一页自动提取）
-- 搜索 API（COLLATE NOCASE + 特殊字符转义）
-- 标签/分类/出版社/作者过滤
-
-### bangumi-metadata
-
-- 完全独立的刮削器
-- 支持手动匹配和批量自动刮削
-- 可自定义正则提取搜索关键词
-- 封面管理（生成/删除/回退）
 
 ## 技术栈
 
