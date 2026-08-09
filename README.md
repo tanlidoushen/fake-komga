@@ -32,10 +32,9 @@ Komga 是一个优秀的漫画服务器，其数据库设计与 API 接口均较
 ## 功能
 
 ### fake-komga-115
-- 以 115 网盘为存储后端，通过 115 Open API 读取漫画
-- 完整 Komga API 兼容（series/books/pages/thumbnail/read-progress）
-- 搜索、分页、排序、过滤
-- 元数据注入（从 bangumi_series_meta 表读取）
+以 115 网盘为存储后端，在此基础上增加了元数据注入功能。
+
+本项目基于 [xJogger/fake-komga-115](https://github.com/xJogger/fake-komga-115) 修改而来，感谢原作者的优秀工作。
 
 ### fake-komga-local
 - 本地文件系统为存储后端，直接扫描目录
