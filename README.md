@@ -72,7 +72,7 @@ docker compose up -d
 
 ## 鸣谢
 
-- 感谢 [xJogger/fake-komga-115](https://github.com/xJogger/fake-komga-115) — fake-komga-115 基于此项目修改而来
+- 感谢 [xJogger/fake-komga-115](https://github.com/xJogger/fake-komga-115) — 本仓库的两个 fake-komga 项目均基于此修改而来
 - 感谢 [dyphire/KomgaBangumi](https://github.com/dyphire/KomgaBangumi) — bangumi-metadata 参考了此项目的刮削逻辑
 
 ---
