@@ -26,8 +26,8 @@ fake-komga/
 Komga 是一个优秀的漫画服务器，其数据库设计与 API 接口均较为成熟。  
 但由于采用 Java 技术栈，在低配设备（如 NAS、开发板等）上内存占用偏高。  
 
-本项目使用 Go 语言重新实现 Komga 的核心 API，在保持兼容性的同时大幅降低资源消耗。  
-当前为测试版本，已完成基础功能适配，支持 Mihon 系阅读器（Komikku/Tachiyomi 等）的 Komga 扩展接入。
+本项目使用 Go 语言实现了一套基础的 Komga 兼容 API，可对接 Mihon 系阅读器（Komikku/Tachiyomi 等）作为漫画后端。  
+当前为测试版本，仅完成了基础功能适配。
 
 ## 功能
 
