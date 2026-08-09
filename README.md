@@ -23,8 +23,8 @@ fake-komga/
 
 ## 背景
 
-Komga 官方版（Java）资源占用较高，在低配设备（如 NAS、开发板）上运行吃力。  
-本项目用 Go 重写，资源占用低（约 10-30MB 内存），同时保持 Komga API 兼容，可无缝对接 Mihon/Komikku/Tachiyomi 的 Komga 扩展。
+Komga 的内存占用纯是 Java 整出来的，本身数据库和 API 设计没啥大问题。
+现在只是测试版本，只有一个基础的对 Mihon 系的适配。
 
 ## 功能
 
