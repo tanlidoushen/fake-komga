@@ -98,4 +98,4 @@ docker compose up -d
 
 ## License
 
-MIT
+[MIT](https://github.com/tanlidoushen/fake-komga)
