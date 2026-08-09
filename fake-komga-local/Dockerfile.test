@@ -1,0 +1,13 @@
+FROM fake-komga-local:dev AS testdata
+RUN apk add --no-cache python3
+RUN mkdir -p /comics/TestSeries && \
+    python3 -c "
+import zipfile
+png = bytes([137,80,78,71,13,10,26,10]) + b'\x00' * 100  # minimal PNG
+with zipfile.ZipFile('/comics/TestSeries/Vol01.cbz', 'w') as z:
+    z.writestr('page001.png', png)
+"
+FROM scratch
+COPY --from=testdata /comics /comics
+COPY --from=testdata /fk-local /fk-local
+ENTRYPOINT ["/fk-local", "--comics-dir=/comics", "--data-dir=/data"]

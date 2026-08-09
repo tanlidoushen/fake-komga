@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fake-komga-local</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:1000px;margin:0 auto;padding:20px;background:#f0f2f5;color:#333}
+h1{font-size:24px;margin:5px 0}
+.card{background:white;border-radius:12px;padding:20px;margin:16px 0;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.stats{display:flex;gap:20px;flex-wrap:wrap}
+.stat{padding:15px 25px;text-align:center;background:#f8f9fa;border-radius:10px;flex:1;min-width:120px}
+.stat-num{font-size:32px;font-weight:bold;color:#1976d2}
+.stat-label{font-size:13px;color:#666;margin-top:4px}
+button{padding:6px 14px;font-size:13px;cursor:pointer;border:none;border-radius:6px;font-weight:500}
+.btn-primary{background:#1976d2;color:white}.btn-primary:hover{background:#1565c0}
+.btn-danger{background:#d32f2f;color:white}.btn-danger:hover{background:#b71c1c}
+.btn-sm{padding:4px 10px;font-size:12px}
+.msg{position:fixed;top:20px;right:20px;z-index:2000;padding:12px 24px;border-radius:8px;font-size:14px;display:none;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
+.msg-success{background:#c8e6c9;color:#2e7d32}
+.msg-error{background:#ffcdd2;color:#c62828}
+.dir-row{display:flex;gap:8px;margin-bottom:6px;align-items:center}
+.dir-row input{flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none}
+.dir-row input:focus{border-color:#1976d2}
+.series-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:10px}
+.series-card{display:flex;gap:12px;padding:12px;border:1px solid #e8e8e8;border-radius:10px;background:#fff;position:relative}
+.series-card:hover{box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.series-card img{width:72px;height:102px;object-fit:cover;border-radius:6px;background:#eee;flex-shrink:0}
+.series-card .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.series-card .name{font-weight:600;font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.series-card .meta{font-size:12px;color:#888;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.series-card .tags{font-size:11px;display:flex;gap:3px;flex-wrap:wrap}
+.series-card .tags .tag{background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:4px;white-space:nowrap}
+.series-card .actions{display:flex;gap:4px;margin-top:auto}
+.badge-matched{background:#c8e6c9;color:#2e7d32;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:500}
+.badge-pending{background:#fff3e0;color:#e65100;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:500}
+.rating{color:#f57c00;font-weight:600}
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;font-size:13px;color:#666}
+.search-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.search-bar input{flex:1;min-width:150px;padding:7px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none}
+.search-bar input:focus{border-color:#1976d2}
+.filter-btn{padding:3px 10px;font-size:12px;border-radius:12px;cursor:pointer;border:1px solid #ddd;background:#fff;color:#666}
+.filter-btn.on{background:#1976d2;color:white;border-color:#1976d2}
+</style>
+</head>
+<body>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+<div><h1>fake-komga-local</h1><p style="color:#666;margin:0">本地文件系统漫画服务器</p></div>
+<button class="btn-primary btn-sm" onclick="loadAll()">刷新</button>
+</div>
+
+<div class="card">
+<div class="stats">
+<div class="stat"><div class="stat-num" id="sSeries">-</div><div class="stat-label">系列</div></div>
+<div class="stat"><div class="stat-num" id="sBooks">-</div><div class="stat-label">书籍</div></div>
+<div class="stat"><div class="stat-num" id="sLibraries">-</div><div class="stat-label">库</div></div>
+</div>
+</div>
+
+<div class="card">
+<h2 style="margin:0 0 12px 0">管理</h2>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn-primary" onclick="startScan()" id="scanBtn">&#x1f504; 扫描所有目录</button>
+<button class="btn-primary" onclick="generateAllCovers()" id="coverBtn">&#x1f5bc; 生成丢失封面</button>
+</div>
+<div id="scanStatus" style="font-size:13px;color:#888;margin-top:8px"></div>
+</div>
+
+<div class="card">
+<h2 style="margin:0 0 12px 0">设置</h2>
+<div id="dirsContainer"></div>
+<button class="btn-sm btn-primary" onclick="addDir()" style="margin-top:4px">+ 添加目录</button>
+<div style="margin-top:12px;display:flex;gap:8px">
+<button class="btn-primary" onclick="saveDirs()">保存设置</button>
+<button class="btn-primary" onclick="saveAndScan()">保存并重新扫描</button>
+</div>
+</div>
+
+<div class="card" id="scanStatusCard" style="display:none">
+<h2 style="margin:0 0 12px 0">扫描状态</h2>
+<div id="scanStatusDetail"></div>
+</div>
+
+<div class="card">
+<h2 style="margin:0 0 12px 0">系列列表</h2>
+<div class="search-bar">
+<input id="searchInput" placeholder="搜索系列名称..." onkeydown="if(event.key==='Enter')loadSeries(0)">
+<div style="display:flex;gap:4px;align-items:center">
+<button class="filter-btn on" id="fltAll" onclick="setFilter('all')">全部</button>
+<button class="filter-btn" id="fltMatched" onclick="setFilter('matched')">已刮削</button>
+<button class="filter-btn" id="fltPending" onclick="setFilter('pending')">待刮削</button>
+</div>
+</div>
+<div id="seriesList"><p style="color:#999">加载中...</p></div>
+<div class="pagination" id="pagination"></div>
+</div>
+
+<div class="msg" id="msg"></div>
+
+<script>
+var dirs = [];
+function E(id){return document.getElementById(id)}
+function msg(t,c){var e=E("msg");e.textContent=t;e.className="msg "+c;e.style.display="block";setTimeout(function(){e.style.display="none"},3000)}
+
+var curFilter="all";
+var curPage=0;
+var pageSize=20;
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function setFilter(f){curFilter=f;curPage=0;document.querySelectorAll(".filter-btn").forEach(function(b){b.className="filter-btn"+(b.id==="flt"+f.charAt(0).toUpperCase()+f.slice(1)?" on":"")});loadSeries(0)}
+function loadSeries(page){
+curPage=page;
+var q=E("searchInput").value.trim();
+var url="/api/v1/series?size="+pageSize+"&page="+page;
+if(q)url+="&search="+encodeURIComponent(q);
+fetch(url).then(function(r){return r.json()}).then(function(d){
+E("sSeries").textContent=d.totalElements||0;
+var h="";
+if(d.content)for(var i=0;i<d.content.length;i++){var s=d.content[i];
+var m=s.metadata||{};
+var bm=s.booksMetadata||{};
+var isMatched=m.totalBookCount!=null||m.rating>0;
+var cover=s.coverUrl||s.fk115CoverUrl||"";
+if(curFilter=="matched"&&!isMatched)continue;
+if(curFilter=="pending"&&isMatched)continue;
+var badge=isMatched?'<span class="badge-matched">'+esc(m.title||"已刮削")+'</span>':'<span class="badge-pending">待刮削</span>';
+var th="";
+if(m.tags)for(var j=0;j<Math.min(m.tags.length,5);j++)th+='<span class="tag">'+esc(m.tags[j])+"</span>";
+h+='<div class="series-card">';
+if(cover)h+='<img src="'+esc(cover)+'" alt="" onerror="this.hidden=true">';else h+='<div style="width:72px;height:102px;background:#eee;border-radius:6px;flex-shrink:0"></div>';
+h+='<div class="info"><div class="name">'+esc(s.name)+'</div><div class="meta">'+badge+(m.rating?'<span class="rating">'+m.rating.toFixed(1)+'</span>':'')+(m.publisher?' <span>'+esc(m.publisher)+'</span>':'')+'</div><div class="tags">'+th+'</div><div class="actions"><span style="font-size:12px;color:#999">'+(s.booksCount||0)+' 本</span></div></div></div>'}
+if(!h)h='<p style="color:#999">暂无匹配系列</p>';
+E("seriesList").innerHTML=h;
+// 分页
+var pg="";
+if(d.totalPages>1){
+pg+='<button class="btn-sm" onclick="loadSeries('+(page-1)+')" '+(d.first?"disabled style='opacity:0.4'":"")+'>&#x25C0; 上一页</button>';
+pg+='<span>'+(page+1)+' / '+d.totalPages+'</span>';
+pg+='<button class="btn-sm" onclick="loadSeries('+(page+1)+')" '+(d.last?"disabled style='opacity:0.4'":"")+'>&#x25B6; 下一页</button>'}
+E("pagination").innerHTML=pg
+}).catch(function(e){E("seriesList").innerHTML='<p style="color:#c62828">加载失败: '+e.message+"</p>"})}
+function loadAll(){
+loadSeries(0);
+fetch("/api/v1/libraries").then(function(r){return r.json()}).then(function(d){E("sLibraries").textContent=d.totalElements||0}).catch(function(){});
+loadSettings();
+}
+
+function loadSettings(){
+fetch("/api/settings").then(function(r){return r.json()}).then(function(d){
+dirs=d.comicsDirs||["/comics"];
+renderDirs();
+}).catch(function(){})
+}
+
+function renderDirs(){
+var h="";
+for(var i=0;i<dirs.length;i++){
+h+='<div class="dir-row"><input id="dir_'+i+'" value="'+dirs[i].replace(/"/g,"&quot;")+'" placeholder="漫画目录路径">';
+h+='<button class="btn-sm btn-danger" onclick="removeDir('+i+')" '+'>&#x2715;</button></div>'}
+E("dirsContainer").innerHTML=h}
+
+function addDir(){dirs.push("");renderDirs()}
+function removeDir(i){dirs.splice(i,1);renderDirs()}
+
+function collectDirs(){
+for(var i=0;i<dirs.length;i++){dirs[i]=E("dir_"+i).value.trim()}
+dirs=dirs.filter(function(d){return d})}
+
+function saveDirs(){
+collectDirs();
+fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({comicsDirs:dirs})})
+.then(function(r){return r.json()}).then(function(d){d.error?msg(d.error,"msg-error"):msg("设置已保存","msg-success")})
+.catch(function(e){msg("请求失败: "+e.message,"msg-error")})}
+
+function saveAndScan(){
+collectDirs();
+E("scanBtn").disabled=true;E("scanStatus").textContent="保存设置并扫描中...";
+fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({comicsDirs:dirs})})
+.then(function(){return fetch("/api/scan",{method:"POST"})}).then(function(r){return r.json()})
+.then(function(d){d.error?msg(d.error,"msg-error"):(msg("已保存并启动扫描","msg-success"),E("scanStatus").textContent="扫描中，请稍后刷新")})
+.catch(function(e){msg("请求失败: "+e.message,"msg-error")}).finally(function(){E("scanBtn").disabled=false})}
+
+function startScan(){
+E("scanBtn").disabled=true;E("scanStatus").textContent="扫描中...";
+fetch("/api/scan",{method:"POST"}).then(function(r){return r.json()}).then(function(d){
+d.error?msg(d.error,"msg-error"):(msg("扫描已启动","msg-success"),E("scanStatus").textContent="扫描中，请稍后刷新",pollScanStatus())
+}).catch(function(e){msg("请求失败: "+e.message,"msg-error")}).finally(function(){E("scanBtn").disabled=false})}
+
+function pollScanStatus(){
+E("scanStatusCard").style.display="block";
+E("scanStatusDetail").innerHTML='<p><span class="loading"></span> 查询扫描状态...</p>';
+fetch("/api/scan/status").then(function(r){return r.json()}).then(function(d){
+if(d.status==="running"||d.status==="pending"){
+E("scanStatusDetail").innerHTML='<p>状态: '+d.status+'</p>';
+setTimeout(pollScanStatus,2000)
+}else{
+E("scanStatusDetail").innerHTML=
+'<div class="stats" style="gap:8px">'+
+'<div class="stat" style="padding:10px 15px;min-width:80px"><div class="stat-num" style="font-size:20px">'+d.status+'</div><div class="stat-label">状态</div></div>'+
+'<div class="stat" style="padding:10px 15px;min-width:80px"><div class="stat-num" style="font-size:20px">'+d.series_total+'</div><div class="stat-label">系列</div></div>'+
+'<div class="stat" style="padding:10px 15px;min-width:80px"><div class="stat-num" style="font-size:20px">'+d.books_total+'</div><div class="stat-label">书籍</div></div>'+
+'</div>'+
+'<p style="font-size:12px;color:#888;margin:6px 0 0">新增系列 '+d.series_added+' | 移除系列 '+d.series_removed+' | 新增书籍 '+d.books_added+' | 移除书籍 '+d.books_removed+'</p>'+
+(d.error?'<p style="color:#c62828">错误: '+d.error+'</p>':'');
+loadAll()}
+}).catch(function(e){E("scanStatusDetail").innerHTML='<p style="color:#c62828">查询失败: '+e.message+'</p>'})}
+
+function generateAllCovers(){
+E("coverBtn").disabled=true;E("scanStatus").textContent="正在生成封面...";
+fetch("/api/covers/generate",{method:"POST"}).then(function(r){return r.json()}).then(function(d){
+d.error?msg(d.error,"msg-error"):msg("封面生成任务已提交","msg-success")
+}).catch(function(e){msg("请求失败: "+e.message,"msg-error")}).finally(function(){E("coverBtn").disabled=false})}
+
+pollScanStatus();
+loadAll();
+</script>
+</body>
+</html>

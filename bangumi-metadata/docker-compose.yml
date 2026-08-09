@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  bangumi-metadata:
+    build: .
+    container_name: bangumi-metadata
+    restart: unless-stopped
+    ports:
+      - "25601:25601"
+    environment:
+      FK115_DB_PATH: /data/fake-komga-115.db
+      BANGUMI_ACCESS_TOKEN: ""  # 可选，用于搜索 NSFW 条目
+      TZ: Asia/Shanghai
+    volumes:
+      - fake-komga-115-data:/data:ro  # 只读挂载 fake-komga-115 的数据卷
+
+volumes:
+  fake-komga-115-data:
+    external: true

@@ -1,0 +1,17 @@
+FROM golang:1.26-alpine AS builder
+ARG GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=${GOPROXY}
+WORKDIR /src
+RUN apk add --no-cache ca-certificates tzdata
+COPY go.mod go.sum ./
+RUN go mod download
+COPY cmd ./cmd
+COPY internal ./internal
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X github.com/xJogger/fake-komga-115/internal/buildinfo.Version=local" -o /out/fake-komga-115 ./cmd/server
+
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates tzdata
+WORKDIR /app
+COPY --from=builder /out/fake-komga-115 .
+EXPOSE 25600
+ENTRYPOINT ["/app/fake-komga-115"]

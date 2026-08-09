@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>Bangumi Metadata</title>
+<style>
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:1200px;margin:0 auto;padding:20px;background:#f0f2f5;color:#333}
+h1{font-size:24px;margin:5px 0}.subtitle{color:#666}
+.card{background:white;border-radius:12px;padding:20px;margin:16px 0;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.stats{display:flex;gap:20px;flex-wrap:wrap}.stat{padding:15px 25px;text-align:center;background:#f8f9fa;border-radius:10px;flex:1;min-width:120px}
+.stat-num{font-size:32px;font-weight:bold;color:#1976d2}.stat-label{font-size:13px;color:#666;margin-top:4px}
+.series-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px}
+.series-card{position:relative;display:flex;gap:16px;padding:16px;border:1px solid #e8e8e8;border-radius:10px;background:#fff}.card-check{position:absolute;top:8px;left:8px;z-index:2;cursor:pointer;background:#fff;border-radius:3px;padding:1px}.card-check input{width:15px;height:15px;cursor:pointer;accent-color:#1976d2}.series-card:hover{box-shadow:0 2px 12px rgba(0,0,0,0.1)}
+.series-card img{width:80px;height:113px;object-fit:cover;border-radius:6px;background:#eee;flex-shrink:0}
+.series-card .info{flex:1;min-width:0}.series-card .name{font-weight:600;font-size:15px;margin-bottom:4px}
+.series-card .meta{font-size:12px;color:#888}.series-card .tags{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.series-card .tag{background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:10px;font-size:11px}
+.rating{color:#f57f17;font-weight:600;font-size:13px}.series-card .actions{display:flex;gap:6px;margin-top:6px}
+.badge-pending{background:#fff9c4;color:#f57f17}.badge-matched{background:#c8e6c9;color:#2e7d32}
+.badge-failed{background:#ffcdd2;color:#c62828}
+.badge-pending,.badge-matched,.badge-failed{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600}
+button{padding:6px 14px;font-size:13px;cursor:pointer;border:none;border-radius:6px;font-weight:500}
+.btn-primary{background:#1976d2;color:#fff}.btn-primary:hover{background:#1565c0}
+.btn-success{background:#388e3c;color:#fff}.btn-danger{background:#d32f2f;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}.btn-outline{background:transparent;color:#1976d2;border:1px solid #1976d2}
+.panel{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:720px;max-height:90vh;background:white;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,0.3);padding:24px;z-index:1000;overflow-y:auto}
+.panel.show{display:block}.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999}.overlay.show{display:block}
+.msg{position:fixed;top:20px;right:20px;z-index:2000;padding:12px 24px;border-radius:8px;font-size:14px;display:none;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
+.msg-success{background:#c8e6c9;color:#2e7d32}.msg-error{background:#ffcdd2;color:#c62828}
+.loading{display:inline-block;width:16px;height:16px;border:2px solid #ddd;border-top-color:#1976d2;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.match-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:12px}
+.match-item{display:flex;flex-direction:column;align-items:center;padding:12px;border:2px solid #e8e8e8;border-radius:10px;cursor:pointer;text-align:center;transition:all .15s}
+.match-item:hover{border-color:#1976d2;background:#e3f2fd;transform:translateY(-2px)}
+.match-item img{width:100px;height:142px;object-fit:cover;border-radius:6px;background:#eee;margin-bottom:8px}
+.search-input{display:flex;gap:8px;margin:12px 0}.search-input input{flex:1;padding:10px 14px;border:2px solid #ddd;border-radius:8px;font-size:14px;outline:none}.search-input input:focus{border-color:#1976d2}
+.search-input select{padding:8px;border:2px solid #ddd;border-radius:8px;font-size:14px;outline:none}
+.section-title{font-size:14px;font-weight:600;color:#555;margin:14px 0 6px 0;padding-bottom:4px;border-bottom:1px solid #eee}
+.form-row{display:flex;gap:12px;margin-bottom:8px}.form-field{flex:1}
+.form-field label{display:block;font-size:12px;font-weight:600;color:#777;margin-bottom:3px}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none;font-family:inherit}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:#1976d2}
+.form-field textarea{min-height:52px;resize:vertical}
+.tag-chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0}
+.tag-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#e3f2fd;color:#1565c0;border-radius:14px;font-size:12px}
+.tag-chip .tag-remove{cursor:pointer;font-weight:bold;font-size:14px;color:#999;line-height:1}.tag-chip .tag-remove:hover{color:#d32f2f}
+.tag-add{display:flex;gap:6px;margin-top:4px}.tag-add input{flex:1;padding:5px 10px;border:1px solid #ddd;border-radius:14px;font-size:12px;outline:none}
+.author-table{width:100%;border-collapse:collapse;font-size:13px}.author-table th,.author-table td{padding:4px;text-align:left}
+.author-table th{color:#777;font-weight:600;font-size:12px}
+.author-table td input,.author-table td select{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;outline:none}
+.tab-bar{display:flex;margin-bottom:16px;border-bottom:2px solid #e0e0e0}.tab{padding:10px 20px;cursor:pointer;font-size:14px;font-weight:500;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.on{color:#1976d2;border-bottom-color:#1976d2}
+.tab-content{display:none}.tab-content.on{display:block}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.settings-grid label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:4px}
+.settings-grid input,.settings-grid select{width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none}
+</style></head><body>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+<div><h1>Bangumi Metadata</h1><p class="subtitle" id="sub">选择系列 - 搜索条目 - 匹配 - 自动刮削</p></div>
+<button class="btn-primary btn-sm" onclick="refreshAll()">刷新</button></div>
+<div class="card"><div class="stats">
+<div class="stat"><div class="stat-num" id="sTotal">-</div><div class="stat-label">总系列</div></div>
+<div class="stat"><div class="stat-num" id="sScraped">-</div><div class="stat-label" style="color:#2e7d32">已匹配</div></div>
+<div class="stat"><div class="stat-num" id="sPending">-</div><div class="stat-label" style="color:#f57f17">待匹配</div></div>
+<div class="stat"><div class="stat-num" id="sFailed">-</div><div class="stat-label" style="color:#c62828">失败</div></div>
+</div></div>
+<div class="tab-bar"><div id="tabSeries" class="tab on" onclick="switchTab(&#39;series&#39;)">系列</div><div id="tabSettings" class="tab" onclick="switchTab(&#39;settings&#39;)">设置</div></div>
+<div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap">
+</div>
+<div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap">
+</div>
+<div class="tab-content on" id="seriesView"><div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn-sm" id="filterAll" onclick="setFilter('all')" style="background:#1976d2;color:white">全部</button><button class="btn-sm" id="filterMatched" onclick="setFilter('matched')" style="background:#e0e0e0">已匹配</button><button class="btn-sm" id="filterPending" onclick="setFilter('pending')" style="background:#e0e0e0">待匹配</button><button class="btn-sm" id="filterFailed" onclick="setFilter('failed')" style="background:#e0e0e0">失败</button></div><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0">所有系列</h2><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input id="batchRegex" placeholder="提取正则（留空=默认）" style="width:230px;padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px" title="从文件夹名提取第1个捕获组作为搜索关键词，例如 [.*?][([^(]+)]"><button class="btn-sm" onclick="saveBatchRegex()" style="background:#757575;color:white">保存正则</button><button class="btn-sm" onclick="selectAll()" style="background:#616161;color:white">全选</button><button class="btn-sm" onclick="clearAll()" style="background:#9e9e9e;color:white">全消</button><button class="btn-primary btn-sm" onclick="batchMatchSelected()" id="btnMatchSelected" disabled>批量匹配已选(0)</button><button class="btn-primary btn-sm" onclick="batchMatch()">批量匹配全部</button></div></div><div class="series-grid" id="seriesGrid"><p style="color:#999">加载中...</p></div></div></div>
+<div class="tab-content" id="settingsView"><div class="card"><h2 style="margin:0 0 12px 0">设置</h2><div class="settings-grid">
+<div><label>匹配类型</label><select id="set_matchType"><option value="漫画">漫画</option><option value="小说">小说</option></select></div>
+<div><label>Bangumi Access Token</label><input id="set_accessToken" type="password"></div>
+<div><label>获取单行本数据</label><select id="set_fetchVolumeData"><option value="true">是</option><option value="false">否</option></select></div>
+<div><label>批量匹配强制刷新</label><select id="set_forceRefresh"><option value="false">否</option><option value="true">是</option></select></div>
+<div><label>封面来源：不使用 Bangumi 封面</label><select id="set_skipCover"><option value="true">是（保留漫画自生成封面）</option><option value="false">否（使用 Bangumi 封面）</option></select></div>
+<div><label>fake-komga-115 地址</label><input id="set_fk115Url" placeholder="http://192.168.3.63:25602"></div>
+<div style="grid-column:1/-1"><label>批量匹配关键词提取正则</label><input id="set_batchKeywordRegex" placeholder="示例：提取标题 → [.*?][([^(]+)]"></div>
+<div style="grid-column:1/-1;font-size:12px;color:#888;margin-top:-4px">留空=使用默认提取方法（CleanFolderName）<br>填写正则→从文件夹名提取第1个捕获组作为搜索关键词<br>文件夹结构：【作者】【标题(附加)】【卷号】【状态】【出版社】<br>提取标题 → [.*?][([^(]+)]<br>提取完整标题（含附加）→ [.*?][([^[]]+)]</div>
+</div><button class="btn-success" onclick="saveSettings()" style="margin-top:14px">保存设置</button></div></div>
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+<div class="panel" id="searchPanel"><h3 style="margin:0 0 4px">搜索</h3><p id="searchSub" style="font-size:13px;color:#666;margin:0 0 8px"></p>
+<label style="font-size:13px;color:#666;margin-bottom:8px;display:block"><input type="checkbox" id="searchSkipCover" checked> 匹配后不使用 Bangumi 封面，保留漫画自生成封面</label>
+<div class="search-input"><select id="searchSource"><option value="bangumi">Bangumi</option><option value="mangadex">MangaDex</option><option value="bof">BookOfMoe</option></select><input id="searchInput" placeholder="输入关键词搜索..."><button class="btn-primary" onclick="doSearch()">搜索</button></div>
+<div id="searchResults"></div><button class="btn-sm" onclick="closeAll()" style="margin-top:12px;background:#e0e0e0;color:#666">取消</button></div>
+<div class="panel" id="detailPanel"><h3 style="margin:0 0 4px">元数据详情</h3><p id="detailTitle" style="font-size:13px;color:#666;margin:0 0 8px"></p><div id="detailBody"></div>
+<div style="display:flex;gap:8px;margin-top:16px"><button class="btn-success" onclick="saveDetail()">保存</button><button class="btn-sm" onclick="closeAll()" style="background:#e0e0e0;color:#666">取消</button></div></div>
+<div class="msg" id="msg"></div>
+<script>
+var cur="",curName="",_authors=[],_tags=[],_currentFilter="all",_allSeriesData=[];
+function E(id){return document.getElementById(id)}
+function esc(s){if(!s)return"";return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function msg(t,c){var e=E("msg");e.textContent=t;e.className="msg "+c;e.style.display="block";setTimeout(function(){e.style.display="none"},3000)}
+function closeAll(){E("searchPanel").classList.remove("show");E("detailPanel").classList.remove("show");E("overlay").classList.remove("show")}
+function switchTab(n){document.querySelectorAll(".tab,.tab-content").forEach(function(e){e.classList.remove("on")});n==="series"?(E("tabSeries").classList.add("on"),E("seriesView").classList.add("on")):(E("tabSettings").classList.add("on"),E("settingsView").classList.add("on"))}
+function setFilter(t){_currentFilter=t;["filterAll","filterMatched","filterPending","filterFailed"].forEach(function(id){var b=document.getElementById(id);if(b){b.style.background=b.id==="filter"+t.charAt(0).toUpperCase()+t.slice(1)?"#1976d2":"#e0e0e0";b.style.color=b.id==="filter"+t.charAt(0).toUpperCase()+t.slice(1)?"white":"#333"}});applyFilter()}
+function applyFilter(){var g=E("seriesGrid"),cards=g.querySelectorAll(".series-card");if(!cards.length)return;for(var i=0;i<cards.length;i++){var c=cards[i];if(_currentFilter==="all"){c.style.display="flex"}else{var matched=c.getAttribute("data-matched");c.style.display=matched===_currentFilter?"flex":"none"}}}
+
+function refreshAll(){loadSeries();loadSettings()}
+function loadSeries(){
+var g=E("seriesGrid");g.innerHTML='<p style="color:#999">加载中...</p>';
+fetch("/api/stats").then(function(r){return r.json()}).then(function(d){
+E("sTotal").textContent=d.totalSeries||0;E("sScraped").textContent=d.scrapedSeries||0;E("sPending").textContent=d.pendingSeries||0;E("sFailed").textContent=d.failedSeries||0;
+var h="";allSeriesList=d.allSeries||[];if(d.allSeries)for(var i=0;i<d.allSeries.length;i++){var s=d.allSeries[i],cover=s.coverUrl||s.fk115CoverUrl||"";
+var badge=s.matched?('<span class="badge-matched">'+esc(s.bangumiTitle||"已匹配")+"</span>"):s.failed?'<span class="badge-failed">失败</span>':'<span class="badge-pending">待匹配</span>';
+var th="";if(s.tags)for(var j=0;j<Math.min(s.tags.length,6);j++)th+='<span class="tag">'+esc(s.tags[j])+"</span>";
+h+='<div class="series-card" data-matched="'+(s.matched?"matched":s.failed?"failed":"pending")+'">';
+h+='<label class="card-check" onclick="event.stopPropagation()" title="勾选后批量匹配（Shift+点击区间多选）"><input type="checkbox" data-sid="'+esc(s.id)+'" data-idx="'+i+'" '+(selIds.indexOf(s.id)>=0?"checked":"")+' onclick="toggleSel(this,event)"></label>';
+if(cover){var fb=s.fk115CoverUrl||'';h+='<img src="'+esc(cover)+'" alt="" onerror="if(fb&&this.src!==fb){this.src=fb}else{this.style.display=\'none\'}">';}else h+='<div style="width:80px;height:113px;background:#eee;border-radius:6px;flex-shrink:0"></div>';
+h+='<div class="info"><div class="name">'+esc(s.name)+'</div><div class="meta">'+badge+(s.rating?'<span class="rating">'+s.rating.toFixed(1)+"</span>":"")+(s.publisher?' <span>'+esc(s.publisher)+"</span>":"")+'</div><div class="tags">'+th+'</div><div class="actions">';
+h+='<button class="btn-primary btn-sm" onclick="openSearch(\''+esc(s.id)+'\',\''+esc(s.name)+'\')">搜索</button><button class="btn-outline btn-sm" onclick="openDetail(\''+esc(s.id)+'\',\''+esc(s.name)+'\')">详情</button></div></div></div>'}
+if(!h)h='<p style="color:#999">暂无数据</p>';g.innerHTML=h}).catch(function(e){g.innerHTML='<p style="color:#c62828">'+e.message+"</p>"})}
+function loadSettings(){fetch("/api/settings").then(function(r){return r.json()}).then(function(d){
+E("set_matchType").value=d.matchType||"漫画";E("set_accessToken").value=d.accessToken||"";E("set_fetchVolumeData").value=d.fetchVolumeData?"true":"false";E("set_forceRefresh").value=d.forceRefresh?"true":"false";E("set_skipCover").value=d.skipCover?"true":"false";E("set_fk115Url").value=d.fk115Url||"";E("set_batchKeywordRegex").value=d.batchKeywordRegex||"";if(d.batchKeywordRegex)E("batchRegex").value=d.batchKeywordRegex}).catch(function(){})}
+function saveSettings(){var d={matchType:E("set_matchType").value,accessToken:E("set_accessToken").value,fetchVolumeData:E("set_fetchVolumeData").value==="true",forceRefresh:E("set_forceRefresh").value==="true",skipCover:E("set_skipCover").value==="true",fk115Url:E("set_fk115Url").value,batchKeywordRegex:E("set_batchKeywordRegex").value};fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)}).then(function(r){return r.json()}).then(function(r){r.error?msg(r.error,"msg-error"):msg("已保存","msg-success")}).catch(function(e){msg(e.message,"msg-error")})}
+function openSearch(id,name){cur=id;curName=name;E("searchSub").textContent="系列: "+name;E("searchInput").value="";E("searchResults").innerHTML="";E("searchPanel").classList.add("show");E("overlay").classList.add("show");E("searchInput").focus()}
+function doSearch(){var q=E("searchInput").value.trim(),src=E("searchSource").value;if(!q)return;E("searchResults").innerHTML='<p><span class="loading"></span> 搜索中...</p>';fetch("/api/search?series="+encodeURIComponent(cur)+"&q="+encodeURIComponent(q)+"&source="+src).then(function(r){return r.json()}).then(function(d){if(d.error){E("searchResults").innerHTML='<p style="color:#c62828">'+esc(d.error)+"</p>";return}if(!d.results||!d.results.length){E("searchResults").innerHTML='<p style="color:#999">无结果</p>';return}var h='<div class="match-grid">';for(var i=0;i<d.results.length;i++){var r=d.results[i],t=r.nameCn||r.name,im=r.image||"";h+='<div class="match-item" onclick="confirmMatch('+r.id+',\''+esc(t)+'\')">';if(im)h+='<img src="'+esc(im)+'" alt="" onerror="this.style.display=\'none\'">';else h+='<div style="width:100px;height:142px;background:#eee;border-radius:6px"></div>';h+='<div class="title">'+esc(t)+'</div><div style="font-size:11px;color:#999">'+esc(r.name)+'</div></div>'}h+="</div>";E("searchResults").innerHTML=h}).catch(function(e){E("searchResults").innerHTML='<p style="color:#c62828">'+e.message+"</p>"})}
+function confirmMatch(id,title){var sc=E("searchSkipCover").checked;E("searchResults").innerHTML='<p><span class="loading"></span> 刮削中...</p>';fetch("/api/confirm",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({seriesId:cur,bangumiId:id,skipCover:sc})}).then(function(r){return r.json()}).then(function(d){d.error?msg(d.error,"msg-error"):(msg("匹配: "+title,"msg-success"),closeAll(),refreshAll())}).catch(function(e){msg(e.message,"msg-error")})}
+function openDetail(id,name){cur=id;curName=name;E("detailTitle").textContent="系列: "+name;E("detailPanel").classList.add("show");E("overlay").classList.add("show");E("detailBody").innerHTML='<p><span class="loading"></span> 加载中...</p>';fetch("/api/series/"+encodeURIComponent(id)).then(function(r){return r.json()}).then(function(d){if(d.error){E("detailBody").innerHTML='<p style="color:#c62828">'+esc(d.error)+"</p>";return}_authors=JSON.parse(JSON.stringify(d.authors||[]));_tags=JSON.parse(JSON.stringify(d.tags||[]));var cover=d.coverUrl||d.fk115CoverUrl||"",h="";h+='<div class="section-title">基础信息</div>';h+='<div class="form-row"><div class="form-field"><label>中文标题</label><input id="ef_titleCn" value="'+esc(d.titleCn||"")+'"></div><div class="form-field"><label>日文原名</label><input id="ef_titleJp" value="'+esc(d.titleJp||"")+'"></div></div>';h+='<div class="form-row"><div class="form-field"><label>出版社</label><input id="ef_publisher" value="'+esc(d.publisher||"")+'"></div><div class="form-field"><label>平台</label><select id="ef_platform"><option value="漫画"'+(d.platform=="漫画"?" selected":"")+'>漫画</option><option value="小说"'+(d.platform=="小说"?" selected":"")+'>小说</option></select></div></div>';h+='<div class="form-row"><div class="form-field"><label>状态</label><input id="ef_status" value="'+esc(d.status||"")+'" placeholder="ONGOING / ENDED / HIATUS"></div><div class="form-field"><label>评分</label><input id="ef_rating" value="'+(d.rating||"")+'" type="number" step="0.1"></div></div>';h+='<div class="form-row"><div class="form-field"><label>总卷数</label><input id="ef_totalVolumes" value="'+(d.totalVolumes||"")+'" type="number"></div><div class="form-field"><label>Bangumi ID</label><input id="ef_bangumiId" value="'+(d.bangumiId||"")+'" type="number"></div></div>';h+='<div class="section-title">简介</div><div class="form-field"><textarea id="ef_summary" rows="3">'+esc(d.summary||"")+'</textarea></div>';h+='<div class="section-title">标签</div><div class="tag-chips" id="tagChips"></div><div class="tag-add"><input id="tagInput" placeholder="输入新标签..."><button class="btn-primary btn-sm" onclick="addTag()">添加</button></div>';h+='<div class="section-title">作者</div><table class="author-table"><thead><tr><th style="width:45%">姓名</th><th style="width:40%">角色</th><th style="width:15%"></th></tr></thead><tbody id="authorBody"></tbody></table><button class="btn-sm btn-primary" onclick="addAuthor()" style="margin-top:4px">+ 添加作者</button>';h+='<div class="section-title">封面</div><div class="form-row"><div class="form-field" style="flex:3"><label>封面 URL（Bangumi）</label><input id="ef_coverUrl" value="'+esc(d.coverUrl||"")+'">';
+if(d.fk115CoverUrl&&!d.coverUrl)h+='<div style="font-size:12px;color:#888;margin-top:2px">当前使用 fake-komga-115 封面</div>';
+h+='</div>';if(cover){var fb2=d.fk115CoverUrl||'';h+='<div style="flex:0 0 auto"><label>&nbsp;</label><img src="'+esc(cover)+'" style="width:130px;height:auto;border-radius:6px;border:1px solid #ddd" onerror="if(fb2&&this.src!==fb2){this.src=fb2}else{this.style.display=\'none\'}"></div>';}h+='</div>';h+='<div class="section-title">fake-komga-115 封面管理</div><div style="display:flex;gap:8px"><button class="btn-primary btn-sm" onclick="generateCover()">生成封面（从漫画第一页）</button><button class="btn-danger btn-sm" onclick="deleteCover()">删除封面（下次访问时重新生成）</button></div><div id="coverStatus" style="font-size:12px;color:#888;margin-top:6px"></div>';if(d.bangumiId){h+='<div class="section-title">重新刮削</div><div class="form-row"><div class="form-field"><input id="ef_rescrapeId" value="'+(d.bangumiId||"")+'" placeholder="Bangumi ID"></div><div class="form-field" style="flex:0;min-width:auto"><button class="btn-primary btn-sm" onclick="manualScrape()" style="white-space:nowrap">重新刮削</button></div></div><label style="font-size:12px;color:#666;display:block;margin-top:4px"><input type="checkbox" id="ef_rescrapeSkipCover" checked> 不写入 Bangumi 封面（保留漫画自生成封面）</label>'}E("detailBody").innerHTML=h;renderTags();renderAuthors()}).catch(function(e){E("detailBody").innerHTML='<p style="color:#c62828">'+e.message+"</p>"})}
+function renderTags(){var c=E("tagChips"),h="";for(var i=0;i<_tags.length;i++)h+='<span class="tag-chip">'+esc(_tags[i])+'<span class="tag-remove" onclick="removeTag('+i+')">&times;</span></span>';if(!h)h='<span style="font-size:12px;color:#aaa">暂无标签</span>';c.innerHTML=h}
+function addTag(){var v=E("tagInput").value.trim();if(v&&_tags.indexOf(v)<0){_tags.push(v);renderTags()}E("tagInput").value=""}
+function removeTag(i){_tags.splice(i,1);renderTags()}
+function renderAuthors(){var t=E("authorBody"),h="";for(var i=0;i<_authors.length;i++){var a=_authors[i];h+='<tr><td><input value="'+esc(a.name||"")+'" onchange="_authors['+i+'].name=this.value"></td><td><select onchange="_authors['+i+'].role=this.value"><option value="writer"'+(a.role=="writer"?" selected":"")+'>原作(writer)</option><option value="penciller"'+(a.role=="penciller"?" selected":"")+'>作画(penciller)</option><option value="illustrator"'+(a.role=="illustrator"?" selected":"")+'>插图(illustrator)</option><option value="script"'+(a.role=="script"?" selected":"")+'>脚本(script)</option><option value="story"'+(a.role=="story"?" selected":"")+'>故事(story)</option><option value="other"'+(a.role=="other"||!a.role?" selected":"")+'>其他</option></select></td><td style="text-align:center"><button class="btn-sm" onclick="removeAuthor('+i+')" style="background:#ffcdd2;color:#c62828;padding:2px 8px">&times;</button></td></tr>'}t.innerHTML=h}
+function addAuthor(){_authors.push({name:"",role:"other"});renderAuthors()}
+function removeAuthor(i){_authors.splice(i,1);renderAuthors()}
+function saveDetail(){var d={seriesId:cur,titleCn:E("ef_titleCn").value,titleJp:E("ef_titleJp").value,publisher:E("ef_publisher").value,platform:E("ef_platform").value,status:E("ef_status").value,summary:E("ef_summary").value,coverUrl:E("ef_coverUrl").value,rating:parseFloat(E("ef_rating").value)||0,totalVolumes:parseInt(E("ef_totalVolumes").value)||0,tags:_tags,authors:_authors.filter(function(a){return a.name&&a.name.trim()})};fetch("/api/update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)}).then(function(r){return r.json()}).then(function(r){r.error?msg(r.error,"msg-error"):msg("已保存","msg-success")}).catch(function(e){msg(e.message,"msg-error")})}
+function manualScrape(){var id=E("ef_rescrapeId").value.trim(),sc=E("ef_rescrapeSkipCover").checked;if(!id)return;E("detailBody").innerHTML='<p><span class="loading"></span> 刮削中...</p>';fetch("/api/confirm",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({seriesId:cur,bangumiId:parseInt(id),skipCover:sc})}).then(function(r){return r.json()}).then(function(d){d.error?msg(d.error,"msg-error"):(msg("刮削成功","msg-success"),closeAll(),refreshAll())}).catch(function(e){msg(e.message,"msg-error")})}
+function generateCover(){E("coverStatus").textContent="提交中...";fetch("/api/cover/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({seriesId:cur})}).then(function(r){return r.json()}).then(function(d){d.error?msg(d.error,"msg-error"):(E("coverStatus").textContent="生成任务已提交",msg("已提交","msg-success"))}).catch(function(e){msg(e.message,"msg-error")})}
+function deleteCover(){if(!confirm("删除封面的缓存？"))return;E("coverStatus").textContent="删除中...";fetch("/api/cover/delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({seriesId:cur})}).then(function(r){return r.json()}).then(function(d){d.error?msg(d.error,"msg-error"):(E("coverStatus").textContent="已删除",msg("已删除","msg-success"))}).catch(function(e){msg(e.message,"msg-error")})}
+var selIds=[];
+var allSeriesList=[];
+var lastSelIdx=-1;
+function toggleSel(cb,ev){ev=ev||window.event;var id=cb.getAttribute("data-sid"),idx=parseInt(cb.getAttribute("data-idx"));var inSel=selIds.indexOf(id)>=0;if(ev.shiftKey&&lastSelIdx>=0){var a=Math.min(lastSelIdx,idx),b=Math.max(lastSelIdx,idx);for(var k=a;k<=b;k++){var sid=allSeriesList[k]?allSeriesList[k].id:null;if(sid&&selIds.indexOf(sid)<0)selIds.push(sid)}lastSelIdx=idx;syncChecks();updateSelBtn();return}if(!inSel){selIds.push(id);lastSelIdx=idx}else{var i=selIds.indexOf(id);if(i>=0)selIds.splice(i,1);lastSelIdx=-1}updateSelBtn()}
+function syncChecks(){var cbs=document.querySelectorAll(".card-check input");for(var i=0;i<cbs.length;i++){cbs[i].checked=selIds.indexOf(cbs[i].getAttribute("data-sid"))>=0}}
+function updateSelBtn(){var b=E("btnMatchSelected");if(!b)return;b.disabled=selIds.length===0;b.textContent="批量匹配已选("+selIds.length+")"}
+function selectAll(){var cbs=document.querySelectorAll(".card-check input");for(var i=0;i<cbs.length;i++){var sid=cbs[i].getAttribute("data-sid");if(sid&&selIds.indexOf(sid)<0)selIds.push(sid);cbs[i].checked=true}updateSelBtn()}
+function clearAll(){selIds=[];lastSelIdx=-1;var cbs=document.querySelectorAll(".card-check input");for(var i=0;i<cbs.length;i++)cbs[i].checked=false;updateSelBtn()}
+function saveBatchRegex(){var v=E("batchRegex").value.trim();fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({matchType:E("set_matchType")?E("set_matchType").value:"漫画",accessToken:E("set_accessToken")?E("set_accessToken").value:"",fetchVolumeData:E("set_fetchVolumeData")?E("set_fetchVolumeData").value==="true":false,forceRefresh:E("set_forceRefresh")?E("set_forceRefresh").value==="true":false,skipCover:E("set_skipCover")?E("set_skipCover").value==="true":false,fk115Url:E("set_fk115Url")?E("set_fk115Url").value:"",batchKeywordRegex:v})}).then(function(r){return r.json()}).then(function(r){r.error?msg(r.error,"msg-error"):msg("正则已保存","msg-success")}).catch(function(e){msg(e.message,"msg-error")})}
+function batchMatchSelected(){if(selIds.length===0){msg("请先勾选系列","msg-error");return}if(!confirm("批量匹配已选 "+selIds.length+" 个系列？"))return;E("sub").textContent="批量匹配中...";fetch("/api/scrape",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({seriesIds:selIds})}).then(function(r){return r.json()}).then(function(d){d.error?msg(d.error,"msg-error"):(msg("已启动","msg-success"),setTimeout(pollBatch,3000))}).catch(function(e){msg(e.message,"msg-error")})}
+function batchMatch(){if(!confirm("批量匹配所有未刮削系列？"))return;E("sub").textContent="批量匹配中...";fetch("/api/scrape",{method:"POST"}).then(function(r){return r.json()}).then(function(d){d.error?msg(d.error,"msg-error"):(msg("已启动","msg-success"),setTimeout(pollBatch,3000))}).catch(function(e){msg(e.message,"msg-error")})}
+function pollBatch(){fetch("/api/status").then(function(r){return r.json()}).then(function(d){d.running?setTimeout(pollBatch,3000):(E("sub").textContent="批量匹配完成",refreshAll())}).catch(function(){setTimeout(pollBatch,5000)})}
+E("batchRegex").value=localStorage.getItem("bm_batchRegex")||"";
+function saveBatchRegexLocal(){localStorage.setItem("bm_batchRegex",E("batchRegex").value)}
+setInterval(saveBatchRegexLocal,2000);
+refreshAll();
+</script>
+</body></html>

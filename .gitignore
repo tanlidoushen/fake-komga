@@ -1,0 +1,14 @@
+# 环境变量（含敏感信息）
+.env
+.deploy/.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 临时文件
+*.tmp
+*.bak
+*.log
+/tmp/

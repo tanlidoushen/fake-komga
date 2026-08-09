@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  # ========== 115 网盘后端（可选，需要 115 Open API 凭证）==========
+  fake-komga-115:
+    build:
+      context: ../fake-komga-115
+      dockerfile: Dockerfile
+    container_name: fake-komga-115
+    ports:
+      - "25602:25600"
+    volumes:
+      - fk-115-data:/data
+    environment:
+      - FK115_HOST=0.0.0.0
+      - FK115_PORT=25600
+      - TZ=${TZ:-Asia/Shanghai}
+    restart: unless-stopped
+
+volumes:
+  fk-115-data:
